@@ -13,7 +13,7 @@ var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 
 
-mongoose.connect("mongodb://localhost/local-login");
+mongoose.connect("mongodb://localhost/RevisionApp");
 //require('./models/passport.js')(passport);
 
 var index = require('./routes/index');
@@ -53,6 +53,13 @@ app.use(expressValidator({
 }));
 
 app.use(flash());
+app.use(function (req, res, next) {
+  res.locals.success_msg = req.flash('success_msg');
+  res.locals.error_msg = req.flash('error_msg');
+  res.locals.error = req.flash('error');
+  res.locals.user = req.user || null;
+  next();
+});
 app.use(require('node-sass-middleware')({
   src: path.join(__dirname, 'public'),
   dest: path.join(__dirname, 'public'),
@@ -63,6 +70,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+app.use(function(err,req,res,next){
+  if (!req.session.loggedin) {
+    req.session.loggedin = false;
+  }
+});
 
 app.use('/', index);
 app.use('/users', users);
